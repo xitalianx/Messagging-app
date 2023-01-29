@@ -1,0 +1,4 @@
+.cryptogram {
+    display: flex;
+    flex-direction: row;
+}
