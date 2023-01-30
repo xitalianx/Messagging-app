@@ -7,12 +7,16 @@ import SidebarThreads from './SidebarThreads'
 import {logout, selectUser} from '../features/userSlice'
 import { useDispatch, useSelector } from 'react-redux';
 import db, { auth } from '../firebase'
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
+import 'firebase/compat/firestore';
 
 
 
 const Sidebar = () => {
   const user = useSelector(selectUser);
   const[threads, setThread] = useState([]);
+  const currentUser = firebase.auth().currentUser;
 
   useEffect(() => {
     db.collection('threads').onSnapshot((snapshot) => setThread(snapshot.docs.map((doc) => ({
@@ -23,12 +27,17 @@ const Sidebar = () => {
 
   const addThread = () => {
     const threadName = prompt("Enter a thread name.");
+    const destinatario = prompt("Enter mail address of receiver.")
     if(threadName){
       db.collection('threads').add({
         threadName: threadName,
+        username: user.uid,
+        receiver: destinatario
       })
     }
   }
+
+  console.log(threads)
 
 
   const dispatch = useDispatch();
@@ -51,7 +60,9 @@ const Sidebar = () => {
         </IconButton>
       </div> 
       <div className='sidebar_threads'>
-        {threads.map(({id, data : {threadName}}) => (
+        {threads
+          .filter(({data}) => {return (data.username === currentUser.uid)||(data.receiver === currentUser.email)})
+          .map(({id, data : {threadName}}) => (
           <SidebarThreads key={id} id={id} threadName={threadName}/>
         ))}
       </div>
